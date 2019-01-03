@@ -42,29 +42,26 @@ for name in matches:
     print output_graph_filename
     with open(output_csv_filename,'wb') as f:
         writer = csv.writer(f, delimiter=',',  quoting=csv.QUOTE_ALL)
-        writer.writerow(['PARTICLE','AREA','PERM','CUMULATIVE AREA','CUMULATIVE PERM'])
-        X=0
-        Y=0
-        x=[]
-        y=[]
+        writer.writerow(['PARTICLE','AREA','PER','CUMULATIVE AREA FRACTION','CUMULATIVE PER FRACTION'])
+        cArea=0.0
+        cPer=0.0
+        cAreaF=[]
+        cPerF=[]
         sorted_a=[]
         sorted_p=[]
         p=[]
         for i in sorted_index:
-            X+=area[i]
-            x.append(X)
-            Y+=perimeter[i]
-            y.append(Y)
+            cArea+=area[i]
+            cAreaF.append(area[i]/cArea)
+            cPer+=perimeter[i]
+            cPerF.append(perimeter[i]/cPer)
             p.append(particle[i])
             sorted_p.append(perimeter[i])
             sorted_a.append(area[i])
-        maxY=max(y)
-        maxX=max(x)
-        print maxX,maxY
-        for P,Area,Per,X,Y in zip(p,sorted_a,sorted_p,x,y):
-            writer.writerow([P,Area,Per,X/maxX,Y/maxY])
+        for P,Area,Per,CAF,CPF in zip(p,sorted_a,sorted_p,cAreaF,cPerF):
+            writer.writerow([P,Area,Per,CAF,CPF])
         fig, ax = plt.subplots( nrows=1, ncols=1 )  # create figure & 1 axis
-        ax.scatter(np.sqrt(np.array(x)/maxX),np.array(y)/maxY )
+        ax.scatter(cAreaF,cPerF )
         fig.savefig(output_graph_filename)   # save the figure to file
         plt.close(fig)
 
