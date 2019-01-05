@@ -9,6 +9,9 @@ parser = argparse.ArgumentParser()
 parser.add_argument("-p","--prefix", help="CSV file prefix",default="test_")
 parser.add_argument("-d","--directory", help="CSV file directory",default="./")
 parser.add_argument("-o","--output", help="directory for output graphs",default="./")
+parser.add_argument("-m","--minimum", help="minimum area to consider.",default=None)
+parser.add_argument("-M","--maximum", help="maximum area to consider.",default=None)
+parser.add_argument("-s","--symbolsize", help="size of symbols",default=10)
 
 args = parser.parse_args()
 print args.directory
@@ -31,15 +34,21 @@ for name in matches:
                 print row
                 header=False
             else:
-                particle.append(int(row[0]))    
-                area.append(float(row[1]))    
-                perimeter.append(float(row[2])) 
+                a=float(row[1])
+                if args.minimum is None or a > float(args.minimum):
+                  if args.maximum is None or a < float(args.maximum):
+                    particle.append(int(row[0]))    
+                    area.append(float(row[1]))    
+                    perimeter.append(float(row[2])) 
     print len(particle)            
     sorted_index=sorted(range(len(area)), key=lambda k: area[k])
-    output_csv_filename=os.path.join(args.output,"sorted_"+os.path.basename(name))
-    output_graph_filename=os.path.join(args.output,"sorted_"+os.path.splitext(os.path.basename(name))[0]+".png")
+    file_stub="sorted_minA-%s_maxA-%s_" % (args.minimum,args.maximum)
+    
+    output_csv_filename=os.path.join(args.output,file_stub+os.path.basename(name))
+    output_graph_filename=os.path.join(args.output,file_stub+os.path.splitext(os.path.basename(name))[0])
     print output_csv_filename
     print output_graph_filename
+    size=float(args.symbolsize)
     with open(output_csv_filename,'wb') as f:
         writer = csv.writer(f, delimiter=',',  quoting=csv.QUOTE_ALL)
         writer.writerow(['PARTICLE','AREA','PER','CUMULATIVE AREA FRACTION','CUMULATIVE PER FRACTION'])
@@ -61,8 +70,9 @@ for name in matches:
         for P,Area,Per,CAF,CPF in zip(p,sorted_a,sorted_p,cAreaF,cPerF):
             writer.writerow([P,Area,Per,CAF,CPF])
         fig, ax = plt.subplots( nrows=1, ncols=1 )  # create figure & 1 axis
-        ax.scatter(cAreaF,cPerF )
-        fig.savefig(output_graph_filename)   # save the figure to file
+        ax.scatter(cAreaF,cPerF,s=size,marker='o',linewidth=1)
+        fig.savefig(output_graph_filename+".png")   # save the figure to file
+        fig.savefig(output_graph_filename+".pdf")   # save the figure to file
         plt.close(fig)
 
 #print area[i],perimeter[i]
